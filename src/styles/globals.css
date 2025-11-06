@@ -4,4 +4,20 @@
   --color-bg: #333333;
   --color-keyboard: #343334;
   --color-done: 8D8888;
+
+  /* Định nghĩa animation utility */
+  --animate-flip: flip 1s linear infinite;
+
+  /* Định nghĩa keyframes */
+  @keyframes flip {
+    0% {
+      transform: rotateY(0deg);
+    }
+    50% {
+      transform: rotateY(180deg);
+    }
+    100% {
+      transform: rotateY(360deg);
+    }
+  }
 }

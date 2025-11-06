@@ -2,22 +2,9 @@
 // Trong một ứng dụng thực tế, bạn có thể muốn tìm nạp (fetch) chúng từ một API
 // hoặc có một thư viện lớn hơn nhiều.
 
+import { getWikiLessons } from "@/lib/wiki";
+
 export const typingLessons = [
-  {
-    id: 1,
-    name: "Home Row 1",
-    text: `just a test`,
-  },
-  {
-    id: 2,
-    name: "Home Row 1",
-    text: `just a test2`,
-  },
-  {
-    id: 3,
-    name: "Home Row 1",
-    text: `just a test3`,
-  },
   {
     id: 4,
     name: "Home Row 1",
@@ -55,12 +42,23 @@ export const typingLessons = [
     name: "Home Row 3",
     text: "Four flights between Tan Son Nhat, Da Nang and Buon Ma Thuot (Dak Lak) on Nov. 6 will operate after 11 a.m., while two Hanoi-Buon Ma Thuot flights on Nov. 7 will depart after 1 p.m. Similarly, four flights connecting Hanoi, Ho Chi Minh City and Hue on Nov. 6 will fly after noon, and two Ho Chi Minh City-Hue flights on Nov. 7 will leave after 1 p.m.",
   },
-
-  // Thêm các bài học khác ở đây
 ];
 
 // Hàm helper để lấy một bài học ngẫu nhiên
-export const getRandomLesson = () => {
+export const getRandomLesson = (typingLessons: WikiLesson[]) => {
   const randomIndex = Math.floor(Math.random() * typingLessons.length);
   return typingLessons[randomIndex]!.text;
+};
+
+export interface WikiLesson {
+  id: number;
+  name: string;
+  text: string;
+}
+export const getRandomLessonFromWiki = async () => {
+  const lessons = await getWikiLessons("Science");
+  console.log({ lessons });
+
+  const randomIndex = Math.floor(Math.random() * lessons.length);
+  return lessons[randomIndex]!.text;
 };

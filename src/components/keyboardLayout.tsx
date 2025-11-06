@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Type definitions
 type FingerType =
@@ -127,13 +127,29 @@ const fingerColors: Record<
   thumb: { bg: "bg-yellow-200", hover: "hover:bg-yellow-300", text: "Thumb" },
 };
 
-const ImprovedKeyboard = () => {
+const ImprovedKeyboard = ({ soundEnabled }: { soundEnabled: boolean }) => {
   const [currentKey, setCurrentKey] = useState("");
   const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  console.log({ soundEnabled });
+
+  useEffect(() => {
+    audioRef.current = new Audio("/key_sound.mp3");
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       e.preventDefault();
+
+      if (audioRef.current && soundEnabled) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch((err) => {
+          console.error("Audio play error:", err);
+        });
+      }
+
       setCurrentKey(e.key);
     };
 
@@ -148,7 +164,7 @@ const ImprovedKeyboard = () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [soundEnabled]);
 
   const normalizedKey = currentKey === " " ? " " : currentKey.toUpperCase();
 

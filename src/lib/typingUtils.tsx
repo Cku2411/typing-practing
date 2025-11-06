@@ -84,3 +84,28 @@ export const renderPromptText = (currentChunk: string, userInput: string) => {
     </>
   );
 };
+
+// src/lib/typingUtils.tsx (hoặc textCleaner.ts)
+
+// Hàm clean text trước khi dùng làm lesson
+export function cleanText(text: string): string {
+  // Bước 1: Thay thế ký tự đặc biệt phổ biến
+  text = text
+    .replace(/—/g, "-") // Em dash → Hyphen
+    .replace(/–/g, "-") // En dash → Hyphen
+    .replace(/’/g, "'") // Curly single quote right → Straight
+    .replace(/‘/g, "'") // Curly single quote left → Straight
+    .replace(/“/g, '"') // Curly double quote left → Straight
+    .replace(/”/g, '"') // Curly double quote right → Straight
+    .replace(/…/g, "...") // Ellipsis → Ba chấm
+    .replace(/\u00A0/g, " "); // Non-breaking space → Space thường
+
+  // Bước 2: Loại bỏ ký tự không mong muốn (regex: giữ alphanumeric, space, punctuation cơ bản)
+  // Chỉ giữ A-Z, a-z, 0-9, space, .,?!:;'"()- và một số khác phù hợp typing
+  text = text.replace(/[^A-Za-z0-9\s.,?!:;'"()\-]/g, ""); // Thay thế bất kỳ ký tự lạ bằng rỗng
+
+  // Bước 3: Trim khoảng trắng thừa và normalize multiple spaces
+  text = text.replace(/\s+/g, " ").trim();
+
+  return text;
+}
