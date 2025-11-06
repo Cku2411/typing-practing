@@ -13,8 +13,8 @@ const TypingArea = ({ lesson, onReset }: TypingAreaProps) => {
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [wpm, setWpm] = useState(0);
-  const [accuracy, setAccuracy] = useState(100);
+  // const [wpm, setWpm] = useState(0);
+  // const [accuracy, setAccuracy] = useState(100);
 
   const { setWrongKey, setExpectedChar } = useTypingStore();
   const errorSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -25,8 +25,8 @@ const TypingArea = ({ lesson, onReset }: TypingAreaProps) => {
       setCurrentSentenceIndex(0);
       setUserInput("");
       setStartTime(null);
-      setWpm(0);
-      setAccuracy(100);
+      // setWpm(0);
+      // setAccuracy(100);
     }
   }, [lesson]);
 
@@ -98,13 +98,13 @@ const TypingArea = ({ lesson, onReset }: TypingAreaProps) => {
     const elapsedMinutes = (Date.now() - startTime) / 1000 / 60;
     const correctChars = userInput.length; // vì chỉ lưu ký tự đúng
     const wordsTyped = correctChars / 5;
-    setWpm(elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0);
+    // setWpm(elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0);
 
-    setAccuracy(
-      correctChars > 0
-        ? Math.round((correctChars / (userInput.length || 1)) * 100)
-        : 100,
-    );
+    // setAccuracy(
+    //   correctChars > 0
+    //     ? Math.round((correctChars / (userInput.length || 1)) * 100)
+    //     : 100,
+    // );
   }, [userInput, startTime]);
 
   return (
