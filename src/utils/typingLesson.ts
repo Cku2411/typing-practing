@@ -46,8 +46,11 @@ export const typingLessons = [
 
 // Hàm helper để lấy một bài học ngẫu nhiên
 export const getRandomLesson = (typingLessons: WikiLesson[]) => {
+  console.log(typingLessons);
+
   const randomIndex = Math.floor(Math.random() * typingLessons.length);
-  return typingLessons[randomIndex]!.text;
+  if (!typingLessons[randomIndex]?.text) return "";
+  return typingLessons[randomIndex].text;
 };
 
 export interface WikiLesson {

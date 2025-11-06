@@ -1,4 +1,6 @@
 import { getWikiLessons } from "@/lib/wiki";
+import { getWikiLessonsV3 } from "@/lib/wiki copy";
+import { getWikiLessonsV2 } from "@/lib/wiki_axios";
 import { getRandomLesson, type WikiLesson } from "@/utils/typingLesson";
 import {
   BookOpenText,
@@ -26,7 +28,10 @@ const NavbarControls = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchLesson = async () => {
-    const text = await getWikiLessons("Science");
+    // const text = await getWikiLessons("Biology");
+    const text = await getWikiLessonsV3();
+    console.log({ text });
+
     setLessons(text);
     setCurrentLesson(getRandomLesson(text));
   };
@@ -46,7 +51,7 @@ const NavbarControls = ({
     setIsRefreshing(true);
     onRefresh();
 
-    // new Promise((res) => setTimeout(res(), 1000));
+    await new Promise((res) => setTimeout(res, 500));
 
     setIsRefreshing(false);
   };
@@ -74,7 +79,7 @@ const NavbarControls = ({
 
       <div className="flex justify-end gap-3.5">
         <RefreshCw
-          className={`stroke-gray-500 stroke-3 transition-transform duration-300 ease-in-out hover:scale-[1.2] ${isLoading ? "animate-spin" : ""}`}
+          className={`stroke-gray-500 stroke-3 transition-transform duration-300 ease-in-out hover:scale-[1.2] ${isRefreshing ? "animate-spin" : ""}`}
           size={35}
           onClick={handleRefresh}
         />

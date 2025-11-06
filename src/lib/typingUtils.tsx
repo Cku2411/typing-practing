@@ -1,62 +1,52 @@
-export function splitIntoChunksBySentences(
+export function splitLessonToSentences(
   text: string,
-  maxCharsPerChunk = 150,
+  maxCharsPerSentenceGroup = 150, // đổi tên rõ nghĩa hơn
 ): string[] {
-  // 1. Tối ưu việc tách câu:
-  // Dùng `match` thay vì `split/reduce`.
-  // Regex này tìm:
-  // - [^.!?]+ : Bất kỳ ký tự nào KHÔNG phải là dấu kết thúc câu (1 hoặc nhiều lần)
-  // - [.!?]* : Theo sau bởi 0 hoặc nhiều dấu kết thúc câu (để xử lý "...")
-  // - \s* : Theo sau bởi 0 hoặc nhiều khoảng trắng (để gom cả khoảng trắng)
-  // - /g      : Tìm tất cả các kết quả khớp
+  // 1. Tách văn bản thành các câu
   const sentences =
     text
       .match(/[^.!?]+[.!?]*\s*/g)
-      ?.map((s) => s.trim()) // Cắt bỏ khoảng trắng thừa ở đầu/cuối mỗi câu
-      .filter(Boolean) || []; // Lọc bỏ các chuỗi rỗng (nếu có)
+      ?.map((s) => s.trim())
+      .filter(Boolean) || [];
 
-  // 2. Tối ưu logic chia chunk (làm cho dễ đọc hơn):
-  const chunks: string[] = [];
-  let currentChunk = "";
+  // 2. Gom nhiều câu thành một "sentenceGroup" (nhóm câu) theo giới hạn ký tự
+  const sentenceGroups: string[] = [];
+  let currentGroup = "";
 
   for (const sentence of sentences) {
-    // Tính toán độ dài nếu thêm câu mới (bao gồm cả 1 dấu cách)
     const lengthWithNewSentence =
-      currentChunk.length === 0
+      currentGroup.length === 0
         ? sentence.length
-        : currentChunk.length + 1 + sentence.length;
+        : currentGroup.length + 1 + sentence.length;
 
-    // Kiểm tra xem câu mới có vừa không
-    if (lengthWithNewSentence <= maxCharsPerChunk) {
-      // TH 1: Vừa -> Thêm vào chunk hiện tại
-      // Dùng template string cho dễ đọc
-      currentChunk =
-        currentChunk.length === 0 ? sentence : `${currentChunk} ${sentence}`;
+    if (lengthWithNewSentence <= maxCharsPerSentenceGroup) {
+      // thêm câu vào nhóm hiện tại
+      currentGroup =
+        currentGroup.length === 0 ? sentence : `${currentGroup} ${sentence}`;
     } else {
-      // TH 2: Không vừa
-      // Nếu chunk hiện tại có nội dung, push nó vào mảng
-      if (currentChunk.length > 0) {
-        chunks.push(currentChunk);
+      // push nhóm hiện tại vào mảng
+      if (currentGroup.length > 0) {
+        sentenceGroups.push(currentGroup);
       }
-      // Bắt đầu chunk mới với câu hiện tại (ngay cả khi nó dài hơn max)
-      currentChunk = sentence;
+      // bắt đầu nhóm mới
+      currentGroup = sentence;
     }
   }
 
-  // 3. Đừng quên push chunk cuối cùng
-  if (currentChunk.length > 0) {
-    chunks.push(currentChunk);
+  // 3. Push nhóm cuối cùng
+  if (currentGroup.length > 0) {
+    sentenceGroups.push(currentGroup);
   }
 
-  console.log({ chunks });
+  console.log({ sentenceGroups });
 
-  return chunks;
+  return sentenceGroups;
 }
 
 // Hàm renderPromptText hiển thị đoạn text hiện tại (currentChunk)
 // với highlight cho phần đã gõ, caret nhấp nháy ở ký tự tiếp theo,
 // và phần còn lại hiển thị mờ.
-export const renderPromptText = (currentChunk: string, userInput: string) => {
+export const renderLesson = (currentChunk: string, userInput: string) => {
   // Lấy phần text mà user đã gõ đúng
   const beforeCaret = currentChunk.slice(0, userInput.length);
 

@@ -10,45 +10,51 @@ interface WikiLesson {
 }
 
 export async function getWikiLessons(category: string): Promise<WikiLesson[]> {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
 
   try {
-    // Tạo URL cho category trên Wikipedia (giả sử English Wikipedia)
-    const categoryUrl = `https://en.wikipedia.org/wiki/Category:${encodeURIComponent(category.replace(/ /g, "_"))}`;
-    await page.goto(categoryUrl, { waitUntil: "domcontentloaded" });
+    const categoryUrl = `https://en.wikipedia.org/wiki/Category:${encodeURIComponent(
+      category.replace(/ /g, "_"),
+    )}`;
 
-    // Scrape list các bài viết từ category (tìm các link trong .mw-category-generated li a)
-    const articleLinks = await page.evaluate(() => {
-      const links: string[] = [];
-      const elements = document.querySelectorAll(
-        "#mw-pages .mw-category-group ul li a",
-      );
-      elements.forEach((el) => {
-        const href = el.getAttribute("href");
-        if (href && href.startsWith("/wiki/")) {
-          links.push(href);
-        }
-      });
-      return links;
+    await page.setUserAgent({
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     });
+
+    await page.goto(categoryUrl, { waitUntil: "networkidle2" });
+
+    // Lấy danh sách link bài viết
+    const articleLinks = await page.$$eval(
+      "#mw-pages .mw-category-group ul li a",
+      (elements) =>
+        elements
+          .map((el) => el.getAttribute("href"))
+          .filter(
+            (href): href is string => !!href && href.startsWith("/wiki/"),
+          ),
+    );
 
     if (articleLinks.length === 0) {
       throw new Error("No articles found in the category");
     }
 
-    // Random select 10 links (hoặc ít hơn nếu category nhỏ)
+    // Chọn ngẫu nhiên tối đa 10 link
     const selectedLinks = articleLinks
-      .sort(() => 0.5 - Math.random()) // Shuffle random
+      .sort(() => Math.random() - 0.5)
       .slice(0, Math.min(10, articleLinks.length));
 
-    const lessons: WikiLesson[] = [];
+    // Hàm lấy nội dung từ một bài viết
+    const scrapeArticle = async (
+      url: string,
+      id: number,
+    ): Promise<WikiLesson> => {
+      await page.goto(`https://en.wikipedia.org${url}`, {
+        waitUntil: "networkidle2",
+      });
 
-    for (let i = 0; i < selectedLinks.length; i++) {
-      const articleUrl = `https://en.wikipedia.org${selectedLinks[i]}`;
-      await page.goto(articleUrl, { waitUntil: "domcontentloaded" });
-
-      // Lấy title (name) và text (intro paragraph)
       const { name, fullText } = await page.evaluate(() => {
         const title =
           document.querySelector("#firstHeading")?.textContent?.trim() ||
@@ -61,28 +67,29 @@ export async function getWikiLessons(category: string): Promise<WikiLesson[]> {
           const pText = p.textContent?.trim() || "";
           if (pText && !p.classList.contains("mw-empty-elt")) {
             text += pText + " ";
-            if (text.split(" ").length >= 200) break; // Giới hạn để tránh quá dài
+            if (text.split(" ").length >= 200) break;
           }
         }
         return { name: title, fullText: text.trim() };
       });
 
-      // Cắt text thành 100-200 từ
+      // Random 100–200 từ
       const words = fullText.split(/\s+/);
       const targetText = words
         .slice(0, Math.floor(Math.random() * 101) + 100)
-        .join(" "); // Random 100-200 từ
+        .join(" ");
 
-      // clean text
-
-      const cleanedText = cleanText(targetText);
-
-      lessons.push({
-        id: i + 1, // ID đơn giản từ 1-10
+      return {
+        id,
         name,
-        text: targetText,
-      });
-    }
+        text: cleanText(targetText),
+      };
+    };
+
+    // Dùng Promise.all để scrape song song
+    const lessons = await Promise.all(
+      selectedLinks.map((link, i) => scrapeArticle(link, i + 1)),
+    );
 
     return lessons;
   } catch (error) {

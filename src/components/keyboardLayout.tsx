@@ -1,3 +1,4 @@
+import { useTypingStore } from "@/lib/store/typingStore";
 import { useState, useEffect, useRef } from "react";
 
 // Type definitions
@@ -131,9 +132,13 @@ const ImprovedKeyboard = ({ soundEnabled }: { soundEnabled: boolean }) => {
   const [currentKey, setCurrentKey] = useState("");
   const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { expectedChar, wrongKey } = useTypingStore();
+  console.log({ wrongKey });
 
-  console.log({ soundEnabled });
+  const normalizedExpected =
+    expectedChar === " " ? " " : expectedChar.toUpperCase();
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     audioRef.current = new Audio("/key_sound.mp3");
@@ -167,6 +172,7 @@ const ImprovedKeyboard = ({ soundEnabled }: { soundEnabled: boolean }) => {
   }, [soundEnabled]);
 
   const normalizedKey = currentKey === " " ? " " : currentKey.toUpperCase();
+  const normalizedWrong = wrongKey === " " ? " " : wrongKey?.toUpperCase();
 
   return (
     <div className="flex w-full flex-col items-center justify-center rounded-lg p-4 opacity-50">
@@ -177,6 +183,8 @@ const ImprovedKeyboard = ({ soundEnabled }: { soundEnabled: boolean }) => {
             {keyboardRows.map((row, rowIndex) => (
               <div key={rowIndex} className="flex justify-center gap-1">
                 {row.map((keyData, keyIndex) => {
+                  const isExpected = normalizedExpected === keyData.key;
+                  const isWrong = normalizedWrong === keyData.key;
                   const isActive =
                     normalizedKey === keyData.key ||
                     (normalizedKey === " " && keyData.key === " ");
@@ -185,7 +193,7 @@ const ImprovedKeyboard = ({ soundEnabled }: { soundEnabled: boolean }) => {
                   return (
                     <div
                       key={keyIndex}
-                      className={` ${colors.bg} ${colors.hover} ${isActive ? "scale-110 shadow-lg ring-4 shadow-yellow-400/50 ring-yellow-400" : ""} ${keyData.homeRow ? "border-b-4 border-gray-600" : ""} relative flex min-h-[50px] items-center justify-center rounded-lg px-4 py-3 transition-all duration-150 ease-out`}
+                      className={` ${colors.bg} ${colors.hover} ${isExpected ? "scale-110 shadow-lg ring-4 shadow-yellow-400/50 ring-yellow-400" : ""} ${keyData.homeRow ? "border-b-4 border-gray-600" : ""} ${isWrong ? "animate-shake scale-110 ring-4 ring-red-500" : ""} relative flex min-h-[50px] items-center justify-center rounded-lg px-4 py-3 transition-all duration-150 ease-out`}
                       style={{
                         width: keyData.width
                           ? `${keyData.width * 60}px`

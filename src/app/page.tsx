@@ -22,27 +22,18 @@ export default function TypingPracticeApp() {
     setCurrentLesson(getRandomLesson(text));
   };
 
-  // Lấy lesson ngẫu nhiên khi load và các setting
-
   useEffect(() => {
     fetchLesson();
-    // lay setting tu localstorage
     const soundSettings = localStorage.getItem("soundEnabled");
     if (soundSettings !== null) {
       setSoundEnabled(soundSettings === "true");
     }
   }, []);
 
-  // Mỗi khi soundEnabled thay đổi → lưu vào localStorage
-  // useEffect(() => {
-  //   localStorage.setItem("soundEnabled", String(soundEnabled));
-  // }, [soundEnabled]);
-
   const handleNextLesson = () => {
     if (lessons.length > 0) {
       setCurrentLesson(getRandomLesson(lessons));
     } else {
-      // Nếu không có bài học nào (ví dụ: lỗi fetch ban đầu), thử fetch lại
       fetchLesson();
     }
   };
@@ -57,7 +48,7 @@ export default function TypingPracticeApp() {
           soundEnabled={soundEnabled}
           setSoundEnabled={setSoundEnabled}
         />
-        <TypingArea promptText={currentLesson} onReset={handleNextLesson} />
+        <TypingArea lesson={currentLesson} onReset={handleNextLesson} />
         <ImprovedKeyboard soundEnabled={soundEnabled} />
       </main>
     </div>

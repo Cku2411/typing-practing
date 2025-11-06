@@ -1,40 +1,49 @@
 "use client";
-import {
-  renderPromptText,
-  splitIntoChunksBySentences,
-} from "@/lib/typingUtils";
-import { useEffect, useState } from "react";
+import { useTypingStore } from "@/lib/store/typingStore";
+import { renderLesson, splitLessonToSentences } from "@/lib/typingUtils";
+import { useEffect, useRef, useState } from "react";
 
 interface TypingAreaProps {
-  promptText: string;
+  lesson: string;
   onReset: () => void;
 }
 
-const TypingArea = ({ promptText, onReset }: TypingAreaProps) => {
-  const [chunks, setChunks] = useState<string[]>([]);
-  const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
+const TypingArea = ({ lesson, onReset }: TypingAreaProps) => {
+  const [sentences, setSentences] = useState<string[]>([]);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
 
+  const { setWrongKey, setExpectedChar } = useTypingStore();
+  const errorSoundRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
-    if (promptText) {
-      setChunks(splitIntoChunksBySentences(promptText));
-      setCurrentChunkIndex(0);
+    if (lesson) {
+      setSentences(splitLessonToSentences(lesson));
+      setCurrentSentenceIndex(0);
       setUserInput("");
       setStartTime(null);
       setWpm(0);
       setAccuracy(100);
     }
-  }, [promptText]);
+  }, [lesson]);
 
-  const currentChunk = chunks[currentChunkIndex] || "";
-  const isCompleteChunk = userInput.length >= currentChunk.length;
+  const currentSentence = sentences[currentSentenceIndex] || "";
+  const isCompleteSentence = userInput.length >= currentSentence.length;
   const isLessonComplete =
-    currentChunkIndex === chunks.length - 1 && isCompleteChunk;
+    currentSentenceIndex === sentences.length - 1 && isCompleteSentence;
 
-  console.log({ isLessonComplete });
+  useEffect(() => {
+    errorSoundRef.current = new Audio("/error_sound.mp3");
+  }, []);
+
+  useEffect(() => {
+    // mỗi lần userInput thay đổi → cập nhật expectedChar
+    const nextChar = currentSentence[userInput.length] || "";
+    setExpectedChar(nextChar);
+  }, [userInput, currentSentence, setExpectedChar]);
 
   // Lắng nghe phím gõ toàn cục
   useEffect(() => {
@@ -44,30 +53,32 @@ const TypingArea = ({ promptText, onReset }: TypingAreaProps) => {
       if (!startTime) {
         setStartTime(Date.now());
       }
-
+      const nextChar = currentSentence[userInput.length];
       if (e.key === "Backspace") {
         setUserInput((prev) => prev.slice(0, -1));
-      } else if (e.key.length === 1) {
-        // chỉ nhận ký tự in ra được
-        setUserInput((prev) => {
-          const nextChar = currentChunk[prev.length];
-          // chỉ chấp nhận ký tự nếu đúng với prompt
-          if (e.key === nextChar) {
-            return prev + e.key;
-          }
-          return prev; // nếu sai thì bỏ qua, caret không tiến
-        });
+      }
+      if (e.key === nextChar) {
+        setUserInput(userInput + e.key);
+        setWrongKey(null);
+      } else {
+        // gõ sai → highlight phím sai + phát âm thanh
+        setWrongKey(e.key);
+        // if (errorSoundRef.current) {
+        //   errorSoundRef.current.currentTime = 0;
+        //   errorSoundRef.current.play();
+        // }
+        setTimeout(() => setWrongKey(null), 300);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isLessonComplete, startTime, currentChunk]);
+  }, [isLessonComplete, startTime, currentSentence, userInput]);
 
   // Khi gõ xong chunk → sang chunk mới
   useEffect(() => {
-    if (isCompleteChunk && !isLessonComplete) {
-      setCurrentChunkIndex((prev) => prev + 1);
+    if (isCompleteSentence && !isLessonComplete) {
+      setCurrentSentenceIndex((prev) => prev + 1);
       setUserInput("");
     }
 
@@ -79,7 +90,7 @@ const TypingArea = ({ promptText, onReset }: TypingAreaProps) => {
 
     window.addEventListener("keydown", handleEnter);
     return () => window.removeEventListener("keydown", handleEnter);
-  }, [isCompleteChunk, isLessonComplete, onReset]);
+  }, [isCompleteSentence, isLessonComplete, onReset]);
 
   // Tính WPM & Accuracy
   useEffect(() => {
@@ -101,7 +112,7 @@ const TypingArea = ({ promptText, onReset }: TypingAreaProps) => {
       {/* Prompt hiển thị */}
       <div className="mt-10 flex min-h-32 items-center justify-center rounded-lg p-8">
         <div className="w-full font-mono leading-relaxed break-words whitespace-pre-wrap">
-          {renderPromptText(currentChunk, userInput)}
+          {renderLesson(currentSentence, userInput)}
         </div>
       </div>
 
