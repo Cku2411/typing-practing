@@ -61,8 +61,6 @@ export interface WikiLesson {
 }
 export const getRandomLessonFromWiki = async () => {
   const lessons = await getWikiLessons("Science");
-  console.log({ lessons });
-
   const randomIndex = Math.floor(Math.random() * lessons.length);
   return lessons[randomIndex]!.text;
 };

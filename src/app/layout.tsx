@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Practice Typing App",
   description: "A minimal 10-finger typing practice app.",
+  icons: "/icon2.ico",
 };
 
 export default function RootLayout({

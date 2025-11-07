@@ -133,7 +133,6 @@ const ImprovedKeyboard = ({ soundEnabled }: { soundEnabled: boolean }) => {
   const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
 
   const { expectedChar, wrongKey } = useTypingStore();
-  console.log({ wrongKey });
 
   const normalizedExpected =
     expectedChar === " " ? " " : expectedChar.toUpperCase();

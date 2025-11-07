@@ -38,8 +38,6 @@ export function splitLessonToSentences(
     sentenceGroups.push(currentGroup);
   }
 
-  console.log({ sentenceGroups });
-
   return sentenceGroups;
 }
 

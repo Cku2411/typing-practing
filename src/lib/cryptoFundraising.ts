@@ -57,8 +57,6 @@ export async function scrapeWeeklyFundraising(): Promise<ProjectData[]> {
     const projects: ProjectData[] = [];
     const articleContent = $report("div.wrapper.article-content");
 
-    console.log({ articleContent });
-
     // --- Bước 5: Lấy dữ liệu từ 'div.wrapper.article-content' ---
     // Giả định: Các dự án được cấu trúc với <h4> là tiêu đề dự án
     // và thẻ <p> ngay sau đó là thông tin dự án.

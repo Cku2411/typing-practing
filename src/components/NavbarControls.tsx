@@ -36,12 +36,9 @@ const NavbarControls = ({
     // const text = await getWikiLessonsV3();
     const text = await cryptoFundraisingInfo();
     console.log({ text });
-
     setLessons(text);
     setCurrentLesson(getRandomLesson(text));
   };
-
-  console.log({ soundEnabled });
 
   const Icon: LucideIcon = soundEnabled ? Volume2 : VolumeX;
 
