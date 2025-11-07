@@ -2,6 +2,7 @@
 // Trong một ứng dụng thực tế, bạn có thể muốn tìm nạp (fetch) chúng từ một API
 // hoặc có một thư viện lớn hơn nhiều.
 
+import { scrapeWeeklyFundraising } from "@/lib/cryptoFundraising";
 import { getWikiLessons } from "@/lib/wiki";
 
 export const typingLessons = [
@@ -64,4 +65,21 @@ export const getRandomLessonFromWiki = async () => {
 
   const randomIndex = Math.floor(Math.random() * lessons.length);
   return lessons[randomIndex]!.text;
+};
+
+export const cryptoFundraisingInfo = async () => {
+  let projectLesson: WikiLesson[] = [];
+  const projects = await scrapeWeeklyFundraising();
+
+  if (projects.length >= 1) {
+    for (let index = 0; index < projects.length; index++) {
+      projectLesson.push({
+        id: index,
+        name: projects[index]?.projectTitle!,
+        text: projects[index]?.projectInfo!,
+      });
+    }
+  }
+
+  return projectLesson;
 };

@@ -1,7 +1,11 @@
 import { getWikiLessons } from "@/lib/wiki";
 import { getWikiLessonsV3 } from "@/lib/wiki copy";
 import { getWikiLessonsV2 } from "@/lib/wiki_axios";
-import { getRandomLesson, type WikiLesson } from "@/utils/typingLesson";
+import {
+  cryptoFundraisingInfo,
+  getRandomLesson,
+  type WikiLesson,
+} from "@/utils/typingLesson";
 import {
   BookOpenText,
   RefreshCw,
@@ -29,7 +33,8 @@ const NavbarControls = ({
 
   const fetchLesson = async () => {
     // const text = await getWikiLessons("Biology");
-    const text = await getWikiLessonsV3();
+    // const text = await getWikiLessonsV3();
+    const text = await cryptoFundraisingInfo();
     console.log({ text });
 
     setLessons(text);
